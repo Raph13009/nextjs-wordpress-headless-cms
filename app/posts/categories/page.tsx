@@ -1,4 +1,5 @@
 import { getAllCategories } from "@/lib/wordpress";
+import type { Category } from "@/lib/wordpress.d";
 import { Section, Container, Prose } from "@/components/craft";
 import { Metadata } from "next";
 import BackButton from "@/components/back";
@@ -12,8 +13,15 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function Page() {
-  const categories = await getAllCategories();
+  let categories: Category[] = [];
+  try {
+    categories = await getAllCategories();
+  } catch (error) {
+    console.warn("Failed to fetch categories:", error);
+  }
 
   return (
     <Section>

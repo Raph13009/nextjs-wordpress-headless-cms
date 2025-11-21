@@ -8,12 +8,20 @@ import type { Metadata } from "next";
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const pages = await getAllPages();
-
-  return pages.map((page) => ({
-    slug: page.slug,
-  }));
+  try {
+    const pages = await getAllPages();
+    return pages.map((page) => ({
+      slug: page.slug,
+    }));
+  } catch (error) {
+    console.warn("Failed to generate static params for pages:", error);
+    return [];
+  }
 }
+
+// Enable dynamic rendering if static generation fails
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
 
 export async function generateMetadata({
   params,

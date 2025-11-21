@@ -1,4 +1,5 @@
 import { getAllTags } from "@/lib/wordpress";
+import type { Tag } from "@/lib/wordpress.d";
 import { Section, Container, Prose } from "@/components/craft";
 import { Metadata } from "next";
 import BackButton from "@/components/back";
@@ -12,8 +13,15 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function Page() {
-  const tags = await getAllTags();
+  let tags: Tag[] = [];
+  try {
+    tags = await getAllTags();
+  } catch (error) {
+    console.warn("Failed to fetch tags:", error);
+  }
 
   return (
     <Section>

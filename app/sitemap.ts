@@ -1,9 +1,16 @@
 import { MetadataRoute } from "next";
 import { getAllPosts } from "@/lib/wordpress";
 import { siteConfig } from "@/site.config";
+import type { Post } from "@/lib/wordpress.d";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const posts = await getAllPosts();
+  let posts: Post[] = [];
+  try {
+    posts = await getAllPosts();
+  } catch (error) {
+    console.warn("Failed to fetch posts for sitemap:", error);
+    // Continue with empty posts array
+  }
 
   const staticUrls: MetadataRoute.Sitemap = [
     {

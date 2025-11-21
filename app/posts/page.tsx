@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "auto";
-export const revalidate = process.env.NODE_ENV === "development" ? 30 : 600; // 30 seconds in dev, 10 minutes in prod
+export const revalidate = 600; // Revalidate every 10 minutes
 
 export default async function PostsPage({
   searchParams,
@@ -122,7 +122,7 @@ export default async function PostsPage({
                   Aucun article trouvé
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Créez des articles dans WordPress pour qu'ils apparaissent ici.
+                  Créez des articles dans WordPress pour qu&apos;ils apparaissent ici.
                 </p>
               </div>
             )}
@@ -152,9 +152,9 @@ export default async function PostsPage({
                 <p className="font-medium mt-4">Vérifiez que :</p>
                 <ul className="list-disc list-inside space-y-1 text-left">
                   <li>WordPress est installé et accessible</li>
-                  <li>L'API REST WordPress est activée</li>
-                  <li>La variable d'environnement WORDPRESS_URL est correctement configurée</li>
-                  <li>L'URL WordPress est accessible depuis votre serveur</li>
+                  <li>L&apos;API REST WordPress est activée</li>
+                  <li>La variable d&apos;environnement WORDPRESS_URL est correctement configurée</li>
+                  <li>L&apos;URL WordPress est accessible depuis votre serveur</li>
                 </ul>
               </div>
             </div>

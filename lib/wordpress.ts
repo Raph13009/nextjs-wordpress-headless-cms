@@ -149,7 +149,6 @@ function convertWpComPostToStandard(wpComPost: any): Post {
     modified_gmt: wpComPost.modified,
     slug: wpComPost.slug,
     status: wpComPost.status || "publish",
-    type: wpComPost.type || "post",
     link: wpComPost.URL || "",
     title: { rendered: wpComPost.title || "" },
     content: { rendered: wpComPost.content || "", protected: false },
