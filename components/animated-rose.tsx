@@ -10,79 +10,131 @@ const PATH_DATA = [
 export function AnimatedRose() {
   const pathRefs = useRef<(SVGPathElement | null)[]>([]);
   const [pathLengths, setPathLengths] = useState<number[]>([]);
-  const [isAnimated, setIsAnimated] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Calculate path lengths and set up animation
-    const paths = pathRefs.current.filter(Boolean) as SVGPathElement[];
-    
-    const lengths = paths.map((path) => {
-      const totalLength = path.getTotalLength();
-      path.style.strokeDasharray = `${totalLength}`;
-      path.style.strokeDashoffset = `${totalLength}`;
-      return totalLength;
-    });
-
-    setPathLengths(lengths);
-
-    // Trigger animation after a brief delay
     const timer = setTimeout(() => {
-      setIsAnimated(true);
+      const paths = pathRefs.current.filter(Boolean) as SVGPathElement[];
+      console.log("AnimatedRose: Found paths:", paths.length);
+      
+      if (paths.length === 0) {
+        console.warn("AnimatedRose: No paths found!");
+        return;
+      }
+      
+      const lengths = paths.map((path) => {
+        const len = path.getTotalLength();
+        console.log("AnimatedRose: Path length:", len);
+        return len;
+      });
+      
+      setPathLengths(lengths);
+      setIsReady(true);
+      console.log("AnimatedRose: Paths ready, lengths:", lengths);
     }, 200);
 
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10 opacity-[0.15] dark:opacity-[0.08]">
+    <div 
+      className="fixed inset-0 pointer-events-none overflow-hidden" 
+      style={{ 
+        zIndex: -1,
+        opacity: 0.6,
+        backgroundColor: "transparent"
+      }}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 3000 3000"
-        className="w-full h-full object-cover"
+        className="w-full h-full"
         preserveAspectRatio="xMidYMid meet"
+        style={{ 
+          width: "200%", 
+          height: "200%",
+          position: "absolute",
+          top: "-50%",
+          left: "-50%"
+        }}
       >
         <defs>
-          <filter id="rose-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="4" result="coloredBlur" />
             <feMerge>
               <feMergeNode in="coloredBlur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
+          
+          <linearGradient id="fuse-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#d4a5f5" stopOpacity="0" />
+            <stop offset="50%" stopColor="#d4a5f5" stopOpacity="0.4" />
+            <stop offset="80%" stopColor="#f5a3c7" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#f5a3c7" stopOpacity="0.7" />
+          </linearGradient>
+          
+          <style>{`
+            @keyframes fuse {
+              0% {
+                stroke-dashoffset: var(--length);
+                opacity: 0;
+              }
+              5% {
+                opacity: 1;
+              }
+              85% {
+                opacity: 1;
+              }
+              100% {
+                stroke-dashoffset: 0;
+                opacity: 0;
+              }
+            }
+          `}</style>
         </defs>
-        <rect
-          x="-300"
-          y="-300"
-          width="3600"
-          height="3600"
-          fill="transparent"
-        />
-        {PATH_DATA.map((d, index) => (
-          <path
-            key={index}
-            ref={(el) => {
-              pathRefs.current[index] = el;
-            }}
-            fillRule="nonzero"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-foreground/30"
-            style={{
-              strokeDasharray: pathLengths[index] || 0,
-              strokeDashoffset: isAnimated ? 0 : pathLengths[index] || 0,
-              filter: isAnimated ? "url(#rose-glow)" : "none",
-              transition: `stroke-dashoffset 2.5s cubic-bezier(0.4, 0, 0.2, 1) ${
-                index * 0.15
-              }s, filter 0.4s ease-out ${2.5 + index * 0.15}s`,
-            }}
-            d={d}
-          />
-        ))}
+        
+        {PATH_DATA.map((d, index) => {
+          const length = pathLengths[index] || 0;
+          const delay = index * 0.8;
+          const duration = 20; // Plus lent : 20 secondes au lieu de 10
+          
+          return (
+            <g key={index}>
+              {/* Base line - invisible, juste pour calculer la longueur */}
+              <path
+                ref={(el) => {
+                  if (el) pathRefs.current[index] = el;
+                }}
+                fill="none"
+                stroke="transparent"
+                strokeWidth="1"
+                d={d}
+                style={{ opacity: 0 }}
+              />
+              
+              {/* Animated trail - only when length is calculated */}
+              {isReady && length > 0 && (
+                <path
+                  fill="none"
+                  stroke="url(#fuse-gradient)"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    strokeDasharray: `${length * 0.25}`,
+                    filter: "url(#glow)",
+                    animation: `fuse ${duration}s linear infinite`,
+                    animationDelay: `${delay}s`,
+                    "--length": `${length}`,
+                  } as React.CSSProperties & { "--length": string }}
+                  d={d}
+                />
+              )}
+            </g>
+          );
+        })}
       </svg>
     </div>
   );
 }
-

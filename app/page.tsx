@@ -34,7 +34,7 @@ export default function Home() {
       <AnimatedRose />
 
       {/* Hero Section */}
-      <Section className="border-b">
+      <Section className="border-b relative z-10">
         <Container>
           <Box
             direction="col"
@@ -143,7 +143,7 @@ export default function Home() {
       </Section>
 
       {/* Quick Links Section */}
-      <Section className="bg-accent/30">
+      <Section className="bg-accent/30 relative z-10">
         <Container>
           <Box direction="col" gap={8}>
             <Prose className="text-center max-w-2xl mx-auto">
@@ -199,7 +199,7 @@ export default function Home() {
       </Section>
 
       {/* CTA Section */}
-      <Section>
+      <Section className="relative z-10">
         <Container>
           <Box
             direction="col"
