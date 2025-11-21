@@ -35,6 +35,9 @@ export default async function PostsPage({
     const postsResponse = await getPostsPaginated(page, postsPerPage);
     const { data: posts, headers } = postsResponse;
     const { total, totalPages } = headers;
+    
+    // Debug log
+    console.log(`[PostsPage] Fetched ${posts.length} posts, total: ${total}, page: ${page}`);
 
     // Create pagination URL helper
     const createPaginationUrl = (newPage: number) => {

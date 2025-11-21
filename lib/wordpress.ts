@@ -187,6 +187,7 @@ export async function getPostsPaginated(
       offset: (page - 1) * perPage,
       order_by: "date",
       order: "DESC", // Plus récents en premier
+      status: "publish", // Only published posts
     };
 
     if (filterParams?.search) {
@@ -220,6 +221,12 @@ export async function getPostsPaginated(
     const posts = (wpComData.posts || []).map(convertWpComPostToStandard);
     const total = wpComData.found || 0;
     const totalPages = Math.ceil(total / perPage);
+    
+    // Debug log
+    console.log(`[WordPress.com] Fetched ${posts.length} posts (total: ${total}, page: ${page}, perPage: ${perPage})`);
+    if (posts.length > 0) {
+      console.log(`[WordPress.com] Posts: ${posts.map(p => p.title.rendered).join(", ")}`);
+    }
 
     return {
       data: posts,
