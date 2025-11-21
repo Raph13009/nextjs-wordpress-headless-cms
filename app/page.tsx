@@ -7,6 +7,7 @@ import Link from "next/link";
 
 // Components
 import { Button } from "@/components/ui/button";
+import { AnimatedRose } from "@/components/animated-rose";
 
 // Icons
 import {
@@ -29,6 +30,9 @@ import { NextJsIcon } from "@/components/icons/nextjs";
 export default function Home() {
   return (
     <>
+      {/* Animated Rose Background */}
+      <AnimatedRose />
+
       {/* Hero Section */}
       <Section className="border-b">
         <Container>
