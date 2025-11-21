@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "auto";
-export const revalidate = 600; // Revalidate every 10 minutes
+export const revalidate = 60; // Revalidate every 60 seconds for fresh content
 
 export default async function PostsPage({
   searchParams,

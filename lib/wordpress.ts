@@ -56,7 +56,7 @@ async function wordpressFetch<T>(
     },
     next: {
       tags: ["wordpress"],
-      revalidate: 3600, // 1 hour cache
+      revalidate: 60, // 1 minute cache for fresh content
     },
   });
 
@@ -87,7 +87,7 @@ async function wordpressFetchWithPagination<T>(
     },
     next: {
       tags: ["wordpress"],
-      revalidate: 3600, // 1 hour cache
+      revalidate: 60, // 1 minute cache for fresh content
     },
   });
 
@@ -204,7 +204,7 @@ export async function getPostsPaginated(
       },
       next: {
         tags: cacheTags,
-        revalidate: process.env.NODE_ENV === "development" ? 60 : 3600, // 1 minute en dev, 1 heure en prod
+        revalidate: 60, // 1 minute cache for fresh content
       },
     });
 
@@ -268,7 +268,7 @@ export async function getPostsPaginated(
     },
     next: {
       tags: cacheTags,
-      revalidate: 3600, // 1 hour cache
+      revalidate: 60, // 1 minute cache for fresh content
     },
   });
 
@@ -340,7 +340,7 @@ export async function getPostById(id: number): Promise<Post> {
       },
       next: {
         tags: ["wordpress", "posts", `post-${id}`],
-        revalidate: process.env.NODE_ENV === "development" ? 60 : 3600,
+        revalidate: 60, // 1 minute cache for fresh content
       },
     });
 
@@ -370,7 +370,7 @@ export async function getPostBySlug(slug: string): Promise<Post> {
       },
       next: {
         tags: ["wordpress", "posts", `post-slug-${slug}`],
-        revalidate: process.env.NODE_ENV === "development" ? 60 : 3600,
+        revalidate: 60, // 1 minute cache for fresh content
       },
     });
 
