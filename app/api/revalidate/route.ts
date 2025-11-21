@@ -46,8 +46,12 @@ export async function POST(request: NextRequest) {
         if (contentId) {
           revalidateTag(`post-${contentId}`);
         }
-        // Clear all post pages when any post changes
-        revalidateTag("posts-page-1");
+        // Clear all post pages when any post changes (up to page 10)
+        for (let i = 1; i <= 10; i++) {
+          revalidateTag(`posts-page-${i}`);
+        }
+        // Also revalidate the posts page path
+        revalidatePath("/posts");
       } else if (contentType === "category") {
         revalidateTag("categories");
         if (contentId) {

@@ -11,18 +11,42 @@ import {
 } from "@/lib/wordpress";
 
 export async function PostCard({ post }: { post: Post }) {
-  const media = post.featured_media
-    ? await getFeaturedMediaById(post.featured_media)
-    : null;
-  const author = post.author ? await getAuthorById(post.author) : null;
-  const date = new Date(post.date).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  const category = post.categories?.[0]
-    ? await getCategoryById(post.categories[0])
-    : null;
+  // Safely fetch media, author, and category with error handling
+  let media = null;
+  let author = null;
+  let category = null;
+
+  try {
+    if (post.featured_media) {
+      media = await getFeaturedMediaById(post.featured_media);
+    }
+  } catch (error) {
+    console.warn("Failed to fetch featured media:", error);
+  }
+
+  try {
+    if (post.author) {
+      author = await getAuthorById(post.author);
+    }
+  } catch (error) {
+    console.warn("Failed to fetch author:", error);
+  }
+
+  try {
+    if (post.categories?.[0]) {
+      category = await getCategoryById(post.categories[0]);
+    }
+  } catch (error) {
+    console.warn("Failed to fetch category:", error);
+  }
+
+  const date = post.date
+    ? new Date(post.date).toLocaleDateString("fr-FR", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "Date inconnue";
 
   return (
     <Link
@@ -43,8 +67,8 @@ export async function PostCard({ post }: { post: Post }) {
               height={200}
             />
           ) : (
-            <div className="flex items-center justify-center w-full h-full text-muted-foreground">
-              No image available
+            <div className="flex items-center justify-center w-full h-full text-muted-foreground text-sm">
+              Aucune image
             </div>
           )}
         </div>
@@ -55,20 +79,20 @@ export async function PostCard({ post }: { post: Post }) {
           className="text-xl text-primary font-medium group-hover:underline decoration-muted-foreground underline-offset-4 decoration-dotted transition-all"
         ></div>
         <div
-          className="text-sm"
+          className="text-sm text-muted-foreground line-clamp-3"
           dangerouslySetInnerHTML={{
             __html: post.excerpt?.rendered
-              ? post.excerpt.rendered.split(" ").slice(0, 12).join(" ").trim() +
+              ? post.excerpt.rendered.replace(/<[^>]*>/g, "").split(" ").slice(0, 20).join(" ").trim() +
                 "..."
-              : "No excerpt available",
+              : "Aucun résumé disponible",
           }}
         ></div>
       </div>
 
       <div className="flex flex-col gap-4">
         <hr />
-        <div className="flex justify-between items-center text-xs">
-          <p>{category?.name || "Uncategorized"}</p>
+        <div className="flex justify-between items-center text-xs text-muted-foreground">
+          <p className="font-medium">{category?.name || "Sans catégorie"}</p>
           <p>{date}</p>
         </div>
       </div>

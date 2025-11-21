@@ -17,8 +17,18 @@ import Balancer from "react-wrap-balancer";
 import type { Metadata } from "next";
 
 export async function generateStaticParams() {
-  return await getAllPostSlugs();
+  try {
+    return await getAllPostSlugs();
+  } catch (error) {
+    console.warn("Failed to generate static params, using dynamic rendering:", error);
+    // Return empty array to allow dynamic rendering
+    return [];
+  }
 }
+
+// Enable dynamic rendering if static generation fails
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
 
 export async function generateMetadata({
   params,
@@ -71,16 +81,47 @@ export default async function Page({
 }) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
-  const featuredMedia = post.featured_media
-    ? await getFeaturedMediaById(post.featured_media)
-    : null;
-  const author = await getAuthorById(post.author);
-  const date = new Date(post.date).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  const category = await getCategoryById(post.categories[0]);
+  
+  // Safely fetch related data with error handling
+  let featuredMedia = null;
+  let author = null;
+  let category = null;
+
+  try {
+    if (post.featured_media) {
+      featuredMedia = await getFeaturedMediaById(post.featured_media);
+    }
+  } catch (error) {
+    console.warn("Failed to fetch featured media:", error);
+  }
+
+  try {
+    if (post.author) {
+      author = await getAuthorById(post.author);
+    }
+  } catch (error) {
+    console.warn("Failed to fetch author:", error);
+    // Create a fallback author object
+    author = { id: post.author, name: "Unknown Author", slug: "" };
+  }
+
+  const date = post.date
+    ? new Date(post.date).toLocaleDateString("fr-FR", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "Date inconnue";
+
+  try {
+    if (post.categories && post.categories.length > 0) {
+      category = await getCategoryById(post.categories[0]);
+    }
+  } catch (error) {
+    console.warn("Failed to fetch category:", error);
+    // Create a fallback category object
+    category = { id: post.categories[0], name: "Sans catégorie", slug: "" };
+  }
 
   return (
     <Section>
@@ -95,23 +136,25 @@ export default async function Page({
           </h1>
           <div className="flex justify-between items-center gap-4 text-sm mb-4">
             <h5>
-              Published {date} by{" "}
-              {author.name && (
-                <span>
-                  <a href={`/posts/?author=${author.id}`}>{author.name}</a>{" "}
+              Publié le {date}
+              {author && author.name && (
+                <span> par{" "}
+                  <a href={`/posts/?author=${author.id}`}>{author.name}</a>
                 </span>
               )}
             </h5>
 
-            <Link
-              href={`/posts/?category=${category.id}`}
-              className={cn(
-                badgeVariants({ variant: "outline" }),
-                "!no-underline"
-              )}
-            >
-              {category.name}
-            </Link>
+            {category && (
+              <Link
+                href={`/posts/?category=${category.id}`}
+                className={cn(
+                  badgeVariants({ variant: "outline" }),
+                  "!no-underline"
+                )}
+              >
+                {category.name}
+              </Link>
+            )}
           </div>
           {featuredMedia?.source_url && (
             <div className="h-96 my-12 md:h-[500px] overflow-hidden flex items-center justify-center border rounded-lg bg-accent/25">

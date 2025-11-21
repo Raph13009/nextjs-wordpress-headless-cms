@@ -12,11 +12,15 @@ import type {
   FeaturedMedia,
 } from "./wordpress.d";
 
-const baseUrl = process.env.WORDPRESS_URL;
+const baseUrl = process.env.WORDPRESS_URL || process.env.NEXT_PUBLIC_WORDPRESS_API_URL;
 
 if (!baseUrl) {
-  throw new Error("WORDPRESS_URL environment variable is not defined");
+  throw new Error("WORDPRESS_URL or NEXT_PUBLIC_WORDPRESS_API_URL environment variable is not defined");
 }
+
+// Detect if this is a WordPress.com site
+const isWordPressCom = baseUrl.includes('.wordpress.com');
+const wpComSite = isWordPressCom ? baseUrl.replace('https://', '').replace('http://', '') : null;
 
 class WordPressAPIError extends Error {
   constructor(message: string, public status: number, public endpoint: string) {
@@ -106,6 +110,63 @@ async function wordpressFetchWithPagination<T>(
   };
 }
 
+// Helper function to convert WordPress.com API response to standard format
+function convertWpComPostToStandard(wpComPost: any): Post {
+  // Extract categories from terms.category object
+  const categories: number[] = [];
+  if (wpComPost.terms?.category) {
+    Object.values(wpComPost.terms.category).forEach((cat: any) => {
+      if (cat?.ID) categories.push(cat.ID);
+    });
+  }
+  // Fallback to wpComPost.categories if terms.category doesn't exist
+  if (categories.length === 0 && wpComPost.categories) {
+    Object.values(wpComPost.categories).forEach((cat: any) => {
+      if (cat?.ID) categories.push(cat.ID);
+    });
+  }
+
+  // Extract tags from terms.post_tag object
+  const tags: number[] = [];
+  if (wpComPost.terms?.post_tag) {
+    Object.values(wpComPost.terms.post_tag).forEach((tag: any) => {
+      if (tag?.ID) tags.push(tag.ID);
+    });
+  }
+  // Fallback to wpComPost.tags if terms.post_tag doesn't exist
+  if (tags.length === 0 && wpComPost.tags) {
+    Object.values(wpComPost.tags).forEach((tag: any) => {
+      if (tag?.ID) tags.push(tag.ID);
+    });
+  }
+
+  return {
+    id: wpComPost.ID,
+    date: wpComPost.date,
+    date_gmt: wpComPost.date,
+    guid: { rendered: wpComPost.guid || wpComPost.URL || "" },
+    modified: wpComPost.modified,
+    modified_gmt: wpComPost.modified,
+    slug: wpComPost.slug,
+    status: wpComPost.status || "publish",
+    type: wpComPost.type || "post",
+    link: wpComPost.URL || "",
+    title: { rendered: wpComPost.title || "" },
+    content: { rendered: wpComPost.content || "", protected: false },
+    excerpt: { rendered: wpComPost.excerpt || "", protected: false },
+    author: wpComPost.author?.ID || 0,
+    featured_media: wpComPost.featured_image ? 1 : 0,
+    comment_status: (wpComPost.discussion?.comment_status || "open") as "open" | "closed",
+    ping_status: (wpComPost.discussion?.ping_status || "open") as "open" | "closed",
+    sticky: wpComPost.sticky || false,
+    template: wpComPost.page_template || "",
+    format: (wpComPost.format || "standard") as Post["format"],
+    meta: {},
+    categories,
+    tags,
+  };
+}
+
 // New function for paginated posts
 export async function getPostsPaginated(
   page: number = 1,
@@ -117,14 +178,65 @@ export async function getPostsPaginated(
     search?: string;
   }
 ): Promise<WordPressResponse<Post[]>> {
+  // Build cache tags based on filters
+  const cacheTags = ["wordpress", "posts"];
+
+  // Use WordPress.com API if detected
+  if (isWordPressCom && wpComSite) {
+    const query: Record<string, any> = {
+      number: perPage,
+      offset: (page - 1) * perPage,
+      order_by: "date",
+      order: "DESC", // Plus récents en premier
+    };
+
+    if (filterParams?.search) {
+      query.search = filterParams.search;
+      cacheTags.push("posts-search");
+    }
+
+    const url = `https://public-api.wordpress.com/rest/v1.1/sites/${wpComSite}/posts${
+      query ? `?${querystring.stringify(query)}` : ""
+    }`;
+
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Next.js WordPress Client",
+      },
+      next: {
+        tags: cacheTags,
+        revalidate: process.env.NODE_ENV === "development" ? 60 : 3600, // 1 minute en dev, 1 heure en prod
+      },
+    });
+
+    if (!response.ok) {
+      throw new WordPressAPIError(
+        `WordPress API request failed: ${response.statusText}`,
+        response.status,
+        url
+      );
+    }
+
+    const wpComData = await response.json();
+    const posts = (wpComData.posts || []).map(convertWpComPostToStandard);
+    const total = wpComData.found || 0;
+    const totalPages = Math.ceil(total / perPage);
+
+    return {
+      data: posts,
+      headers: {
+        total,
+        totalPages,
+      },
+    };
+  }
+
+  // Standard WordPress REST API
   const query: Record<string, any> = {
     _embed: true,
     per_page: perPage,
     page,
   };
-
-  // Build cache tags based on filters
-  const cacheTags = ["wordpress", "posts"];
 
   if (filterParams?.search) {
     query.search = filterParams.search;
@@ -219,10 +331,62 @@ export async function getAllPosts(filterParams?: {
 }
 
 export async function getPostById(id: number): Promise<Post> {
+  // Use WordPress.com API if detected
+  if (isWordPressCom && wpComSite) {
+    const url = `https://public-api.wordpress.com/rest/v1.1/sites/${wpComSite}/posts/${id}`;
+    
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Next.js WordPress Client",
+      },
+      next: {
+        tags: ["wordpress", "posts", `post-${id}`],
+        revalidate: process.env.NODE_ENV === "development" ? 60 : 3600,
+      },
+    });
+
+    if (!response.ok) {
+      throw new WordPressAPIError(
+        `WordPress API request failed: ${response.statusText}`,
+        response.status,
+        url
+      );
+    }
+
+    const wpComPost = await response.json();
+    return convertWpComPostToStandard(wpComPost);
+  }
+
   return wordpressFetch<Post>(`/wp-json/wp/v2/posts/${id}`);
 }
 
 export async function getPostBySlug(slug: string): Promise<Post> {
+  // Use WordPress.com API if detected
+  if (isWordPressCom && wpComSite) {
+    const url = `https://public-api.wordpress.com/rest/v1.1/sites/${wpComSite}/posts/slug:${slug}`;
+    
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Next.js WordPress Client",
+      },
+      next: {
+        tags: ["wordpress", "posts", `post-slug-${slug}`],
+        revalidate: process.env.NODE_ENV === "development" ? 60 : 3600,
+      },
+    });
+
+    if (!response.ok) {
+      throw new WordPressAPIError(
+        `WordPress API request failed: ${response.statusText}`,
+        response.status,
+        url
+      );
+    }
+
+    const wpComPost = await response.json();
+    return convertWpComPostToStandard(wpComPost);
+  }
+
   return wordpressFetch<Post[]>("/wp-json/wp/v2/posts", { slug }).then(
     (posts) => posts[0]
   );
@@ -350,6 +514,47 @@ export async function searchAuthors(query: string): Promise<Author[]> {
 
 // Function specifically for generateStaticParams - fetches ALL posts
 export async function getAllPostSlugs(): Promise<{ slug: string }[]> {
+  // Use WordPress.com API if detected
+  if (isWordPressCom && wpComSite) {
+    const allSlugs: { slug: string }[] = [];
+    let page = 1;
+    let hasMore = true;
+
+    while (hasMore) {
+      const url = `https://public-api.wordpress.com/rest/v1.1/sites/${wpComSite}/posts?number=100&offset=${(page - 1) * 100}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          "User-Agent": "Next.js WordPress Client",
+        },
+        next: {
+          tags: ["wordpress", "posts", "post-slugs"],
+          revalidate: 3600,
+        },
+      });
+
+      if (!response.ok) {
+        throw new WordPressAPIError(
+          `WordPress API request failed: ${response.statusText}`,
+          response.status,
+          url
+        );
+      }
+
+      const wpComData = await response.json();
+      const posts = wpComData.posts || [];
+      const found = wpComData.found || 0;
+      
+      allSlugs.push(...posts.map((post: any) => ({ slug: post.slug })));
+
+      hasMore = allSlugs.length < found;
+      page++;
+    }
+
+    return allSlugs;
+  }
+
+  // Standard WordPress REST API
   const allSlugs: { slug: string }[] = [];
   let page = 1;
   let hasMore = true;
