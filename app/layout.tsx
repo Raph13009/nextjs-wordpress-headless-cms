@@ -59,6 +59,12 @@ export default function RootLayout({
   );
 }
 
+interface NavProps {
+  className?: string;
+  children?: React.ReactNode;
+  id?: string;
+}
+
 const Nav = ({ className, children, id }: NavProps) => {
   return (
     <nav

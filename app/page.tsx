@@ -1,149 +1,287 @@
 // Craft Imports
-import { Section, Container, Prose } from "@/components/craft";
+import { Section, Container, Prose, Box } from "@/components/craft";
 import Balancer from "react-wrap-balancer";
 
 // Next.js Imports
 import Link from "next/link";
 
+// Components
+import { Button } from "@/components/ui/button";
+
 // Icons
-import { File, Pen, Tag, Diamond, User, Folder } from "lucide-react";
+import {
+  File,
+  Pen,
+  Tag,
+  Diamond,
+  User,
+  Zap,
+  Shield,
+  Globe,
+  ArrowRight,
+  Code,
+  Layout,
+} from "lucide-react";
 import { WordPressIcon } from "@/components/icons/wordpress";
 import { NextJsIcon } from "@/components/icons/nextjs";
 
 // This page is using the craft.tsx component and design system
 export default function Home() {
   return (
-    <Section>
-      <Container>
-        <ToDelete />
-      </Container>
-    </Section>
+    <>
+      {/* Hero Section */}
+      <Section className="border-b">
+        <Container>
+          <Box
+            direction="col"
+            gap={8}
+            className="text-center max-w-3xl mx-auto py-12 md:py-20"
+          >
+            <Box direction="col" gap={4} className="items-center">
+              <Box gap={3} className="items-center justify-center">
+                <WordPressIcon
+                  className="text-foreground"
+                  width={48}
+                  height={48}
+                />
+                <span className="text-2xl text-muted-foreground">+</span>
+                <NextJsIcon
+                  className="text-foreground"
+                  width={48}
+                  height={48}
+                />
+              </Box>
+              <Prose>
+                <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+                  <Balancer>
+                    Modern Headless CMS with Next.js & WordPress
+                  </Balancer>
+                </h1>
+                <p className="text-xl text-muted-foreground mt-6">
+                  <Balancer>
+                    Build lightning-fast websites with the power of Next.js and
+                    the flexibility of WordPress as your content management
+                    system.
+                  </Balancer>
+                </p>
+              </Prose>
+            </Box>
+
+            <Box gap={4} className="justify-center flex-wrap">
+              <Button asChild size="lg">
+                <Link href="/posts">
+                  Explore Posts
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg">
+                <Link href="/pages">View Pages</Link>
+              </Button>
+            </Box>
+          </Box>
+        </Container>
+      </Section>
+
+      {/* Features Section */}
+      <Section>
+        <Container>
+          <Box direction="col" gap={12}>
+            <Prose className="text-center max-w-2xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-bold">
+                <Balancer>Why Choose This Stack?</Balancer>
+              </h2>
+              <p className="text-muted-foreground">
+                <Balancer>
+                  The perfect combination of modern frontend technology and
+                  powerful content management.
+                </Balancer>
+              </p>
+            </Prose>
+
+            <Box
+              cols={{ base: 1, md: 2, lg: 3 }}
+              gap={6}
+              className="mt-8"
+            >
+              <FeatureCard
+                icon={<Zap className="h-6 w-6" />}
+                title="Lightning Fast"
+                description="Built with Next.js for optimal performance, server-side rendering, and static site generation."
+              />
+              <FeatureCard
+                icon={<Shield className="h-6 w-6" />}
+                title="Secure & Reliable"
+                description="WordPress backend provides robust security and content management capabilities."
+              />
+              <FeatureCard
+                icon={<Globe className="h-6 w-6" />}
+                title="SEO Optimized"
+                description="Next.js SSR and SSG ensure your content is perfectly indexed by search engines."
+              />
+              <FeatureCard
+                icon={<Code className="h-6 w-6" />}
+                title="Developer Friendly"
+                description="TypeScript support, modern tooling, and a clean architecture for easy development."
+              />
+              <FeatureCard
+                icon={<Layout className="h-6 w-6" />}
+                title="Flexible Design"
+                description="Use shadcn/ui and Tailwind CSS to create beautiful, responsive interfaces."
+              />
+              <FeatureCard
+                icon={<Pen className="h-6 w-6" />}
+                title="Content Management"
+                description="Leverage WordPress's intuitive admin interface for content creation and editing."
+              />
+            </Box>
+          </Box>
+        </Container>
+      </Section>
+
+      {/* Quick Links Section */}
+      <Section className="bg-accent/30">
+        <Container>
+          <Box direction="col" gap={8}>
+            <Prose className="text-center max-w-2xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-bold">
+                <Balancer>Explore Your Content</Balancer>
+              </h2>
+              <p className="text-muted-foreground">
+                <Balancer>
+                  Browse through posts, pages, authors, and more from your
+                  WordPress CMS.
+                </Balancer>
+              </p>
+            </Prose>
+
+            <Box
+              cols={{ base: 1, md: 2, lg: 3 }}
+              gap={4}
+              className="mt-8"
+            >
+              <QuickLinkCard
+                icon={<Pen size={24} />}
+                title="Posts"
+                description="All posts from your WordPress"
+                href="/posts"
+              />
+              <QuickLinkCard
+                icon={<File size={24} />}
+                title="Pages"
+                description="Custom pages from your WordPress"
+                href="/pages"
+              />
+              <QuickLinkCard
+                icon={<User size={24} />}
+                title="Authors"
+                description="List of the authors from your WordPress"
+                href="/posts/authors"
+              />
+              <QuickLinkCard
+                icon={<Tag size={24} />}
+                title="Tags"
+                description="Content by tags from your WordPress"
+                href="/posts/tags"
+              />
+              <QuickLinkCard
+                icon={<Diamond size={24} />}
+                title="Categories"
+                description="Categories from your WordPress"
+                href="/posts/categories"
+              />
+            </Box>
+          </Box>
+        </Container>
+      </Section>
+
+      {/* CTA Section */}
+      <Section>
+        <Container>
+          <Box
+            direction="col"
+            gap={6}
+            className="text-center max-w-2xl mx-auto py-12 px-6 rounded-lg border bg-card"
+          >
+            <Prose>
+              <h2 className="text-3xl md:text-4xl font-bold">
+                <Balancer>Ready to Get Started?</Balancer>
+              </h2>
+              <p className="text-muted-foreground mt-4">
+                <Balancer>
+                  Start building your next project with this powerful headless
+                  CMS setup.
+                </Balancer>
+              </p>
+            </Prose>
+            <Box gap={4} className="justify-center flex-wrap">
+              <Button asChild size="lg">
+                <Link href="/posts">
+                  Browse Content
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg">
+                <Link href="https://github.com/9d8dev/next-wp">
+                  View Documentation
+                </Link>
+              </Button>
+            </Box>
+          </Box>
+        </Container>
+      </Section>
+    </>
   );
 }
 
-// This is just some example TSX
-const ToDelete = () => {
+// Feature Card Component
+const FeatureCard = ({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) => {
   return (
-    <main className="space-y-6">
-      <Prose>
-        <h1>
-          <Balancer>Headless WordPress built with the Next.js</Balancer>
-        </h1>
-
-        <p>
-          This is <a href="https://github.com/9d8dev/next-wp">next-wp</a>,
-          created as a way to build WordPress sites with Next.js at rapid speed.
-          This starter is designed with{" "}
-          <a href="https://ui.shadcn.com">shadcn/ui</a>,{" "}
-          <a href="https://craft-ds.com">craft-ds</a>, and Tailwind CSS. Use{" "}
-          <a href="https://components.work">brijr/components</a> to build your
-          site with prebuilt components. The data fetching and typesafety is
-          handled in <code>lib/wordpress.ts</code> and{" "}
-          <code>lib/wordpress.d.ts</code>.
-        </p>
-      </Prose>
-
-      <div className="flex justify-between items-center gap-4">
-        {/* Vercel Clone Starter */}
+    <div className="border rounded-lg p-6 bg-card hover:shadow-lg transition-all">
+      <div className="flex flex-col gap-4">
         <div className="flex items-center gap-3">
-          <a
-            className="h-auto block"
-            href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2F9d8dev%2Fnext-wp&env=WORDPRESS_URL,WORDPRESS_HOSTNAME&envDescription=Add%20WordPress%20URL%20with%20Rest%20API%20enabled%20(ie.%20https%3A%2F%2Fwp.example.com)%20abd%20the%20hostname%20for%20Image%20rendering%20in%20Next%20JS%20(ie.%20wp.example.com)&project-name=next-wp&repository-name=next-wp&demo-title=Next%20JS%20and%20WordPress%20Starter&demo-url=https%3A%2F%2Fwp.9d8.dev"
-          >
-            {/* eslint-disable-next-line */}
-            <img
-              className="not-prose my-4"
-              src="https://vercel.com/button"
-              alt="Deploy with Vercel"
-              width={105}
-              height={32.62}
-            />
-          </a>
-          <p className="!text-sm sr-only sm:not-sr-only text-muted-foreground">
-            Deploy with Vercel in seconds.
-          </p>
+          <div className="p-2 rounded-md bg-primary/10 text-primary">
+            {icon}
+          </div>
+          <h3 className="text-xl font-semibold">{title}</h3>
         </div>
+        <p className="text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  );
+};
 
-        <div className="flex gap-2 items-center">
-          <WordPressIcon className="text-foreground" width={32} height={32} />
-          <NextJsIcon className="text-foreground" width={32} height={32} />
+// Quick Link Card Component
+const QuickLinkCard = ({
+  icon,
+  title,
+  description,
+  href,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  href: string;
+}) => {
+  return (
+    <Link
+      href={href}
+      className="border rounded-lg p-6 bg-card hover:shadow-lg hover:scale-[1.02] transition-all flex flex-col gap-4 group"
+    >
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-md bg-accent text-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+          {icon}
         </div>
+        <h3 className="text-lg font-semibold">{title}</h3>
       </div>
-
-      <div className="grid md:grid-cols-3 gap-4 mt-6">
-        <Link
-          className="border h-48 bg-accent/50 rounded-lg p-4 flex flex-col justify-between hover:scale-[1.02] transition-all"
-          href="/posts"
-        >
-          <Pen size={32} />
-          <span>
-            Posts{" "}
-            <span className="block text-sm text-muted-foreground">
-              All posts from your WordPress
-            </span>
-          </span>
-        </Link>
-        <Link
-          className="border h-48 bg-accent/50 rounded-lg p-4 flex flex-col justify-between hover:scale-[1.02] transition-all"
-          href="/pages"
-        >
-          <File size={32} />
-          <span>
-            Pages{" "}
-            <span className="block text-sm text-muted-foreground">
-              Custom pages from your WordPress
-            </span>
-          </span>
-        </Link>
-        <Link
-          className="border h-48 bg-accent/50 rounded-lg p-4 flex flex-col justify-between hover:scale-[1.02] transition-all"
-          href="/posts/authors"
-        >
-          <User size={32} />
-          <span>
-            Authors{" "}
-            <span className="block text-sm text-muted-foreground">
-              List of the authors from your WordPress
-            </span>
-          </span>
-        </Link>
-        <Link
-          className="border h-48 bg-accent/50 rounded-lg p-4 flex flex-col justify-between hover:scale-[1.02] transition-all"
-          href="/posts/tags"
-        >
-          <Tag size={32} />
-          <span>
-            Tags{" "}
-            <span className="block text-sm text-muted-foreground">
-              Content by tags from your WordPress
-            </span>
-          </span>
-        </Link>
-        <Link
-          className="border h-48 bg-accent/50 rounded-lg p-4 flex flex-col justify-between hover:scale-[1.02] transition-all"
-          href="/posts/categories"
-        >
-          <Diamond size={32} />
-          <span>
-            Categories{" "}
-            <span className="block text-sm text-muted-foreground">
-              Categories from your WordPress
-            </span>
-          </span>
-        </Link>
-        <a
-          className="border h-48 bg-accent/50 rounded-lg p-4 flex flex-col justify-between hover:scale-[1.02] transition-all"
-          href="https://github.com/9d8dev/next-wp/blob/main/README.md"
-        >
-          <Folder size={32} />
-          <span>
-            Documentation{" "}
-            <span className="block text-sm text-muted-foreground">
-              How to use `next-wp`
-            </span>
-          </span>
-        </a>
-      </div>
-    </main>
+      <p className="text-sm text-muted-foreground">{description}</p>
+    </Link>
   );
 };
